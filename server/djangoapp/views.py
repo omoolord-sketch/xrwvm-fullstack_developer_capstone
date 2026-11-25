@@ -9,6 +9,10 @@ from django.contrib import messages
 from datetime import datetime
 
 from django.http import JsonResponse
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
+from django.core.validators import validate_email
 from django.contrib.auth import login, authenticate
 import logging
 import json
@@ -45,9 +49,35 @@ def logout_request(request):
     return JsonResponse(data)
 
 # Create a `registration` view to handle sign up request
-# @csrf_exempt
-# def registration(request):
-# ...
+@csrf_exempt
+def registration(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+    try:
+        data = json.loads(request.body)
+        username = data["userName"].strip()
+        password = data["password"]
+        first_name = data["firstName"].strip()
+        last_name = data["lastName"].strip()
+        email = data["email"].strip()
+        if not all((username, password, first_name, last_name, email)):
+            return JsonResponse({"error": "All fields are required"}, status=400)
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"error": "Already Registered"}, status=409)
+        user = User(username=username, first_name=first_name, last_name=last_name, email=email)
+        validate_email(email)
+        user.full_clean(exclude=["password"])
+        validate_password(password, user)
+        user.set_password(password)
+        user.save()
+    except IntegrityError:
+        return JsonResponse({"error": "Already Registered"}, status=409)
+    except ValidationError as exc:
+        return JsonResponse({"error": " ".join(exc.messages)}, status=400)
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return JsonResponse({"error": "Invalid registration data"}, status=400)
+    login(request, user)
+    return JsonResponse({"userName": username, "status": "Authenticated"})
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
