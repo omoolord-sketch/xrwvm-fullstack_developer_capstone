@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact Us | Best Cars Dealership</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/bootstrap.min.css">
+  <style>
+    body { background: #f5f8fa; color: #20333d; }
+    .contact-header { text-align: center; padding: 2.5rem 1rem; }
+    .contact-panel { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 2rem; align-items: center; background: white; border: 1px solid #dce4e8; border-radius: 12px; padding: 2rem; }
+    .contact-panel img { width: 100%; max-width: 420px; height: auto; display: block; margin: auto; }
+    .contact-panel h2 { font-size: 1.35rem; margin-top: 1.25rem; }
+    .navbar .active { font-weight: bold; color: #20333d; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-light" style="background-color:darkturquoise;">
+    <div class="container-fluid justify-content-start gap-4">
+      <a class="navbar-brand" href="/">Dealerships</a>
+      <a class="nav-link" href="/">Home</a>
+      <a class="nav-link" href="/about/">About Us</a>
+      <a class="nav-link active" aria-current="page" href="/contact/">Contact Us</a>
+    </div>
+  </nav>
+  <main class="container pb-5">
+    <header class="contact-header">
+      <h1>Contact Us</h1>
+      <p>Have a question about a vehicle, a dealership or your next test drive? We are here to help.</p>
+    </header>
+    <section class="contact-panel">
+      <div>
+        <img src="/static/contactus.png" alt="Contact our customer support team">
+        <h2 class="text-center">Best Cars Dealership</h2>
+        <p class="text-center">Your journey to the right car starts here.</p>
+      </div>
+      <div>
+        <h2>General enquiries</h2>
+        <p>Email: <a href="mailto:info@bestcars.example">info@bestcars.example</a><br>Phone: <a href="tel:+12125550142">+1 (212) 555-0142</a></p>
+        <h2>Sales and test drives</h2>
+        <p>Email: <a href="mailto:sales@bestcars.example">sales@bestcars.example</a></p>
+        <h2>Customer support</h2>
+        <p>Email: <a href="mailto:support@bestcars.example">support@bestcars.example</a></p>
+        <h2>Opening hours</h2>
+        <p>Monday–Friday: 9:00 AM – 6:00 PM<br>Saturday: 10:00 AM – 4:00 PM<br>Sunday: Closed</p>
+      </div>
+    </section>
+    <p class="text-muted text-center mt-4 small">Illustrative contact details for this demonstration dealership.</p>
+  </main>
+</body>
+</html>
