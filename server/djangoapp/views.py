@@ -16,6 +16,7 @@ from django.core.validators import validate_email
 from django.contrib.auth import login, authenticate
 import logging
 import json
+from urllib.parse import quote
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 from .models import CarMake, CarModel
@@ -81,18 +82,34 @@ def registration(request):
     login(request, user)
     return JsonResponse({"userName": username, "status": "Authenticated"})
 
-# # Update the `get_dealerships` view to render the index page with
-# a list of dealerships
-# def get_dealerships(request):
-# ...
+def get_dealerships(request, state="All"):
+    endpoint = "/fetchDealers"
+    if state and state.lower() != "all":
+        endpoint += "/" + quote(state, safe="")
+    dealers = get_request(endpoint)
+    if not isinstance(dealers, list):
+        return JsonResponse({"status": 502, "message": "Unable to retrieve dealerships"}, status=502)
+    return JsonResponse({"status": 200, "dealers": dealers})
 
-# Create a `get_dealer_reviews` view to render the reviews of a dealer
-# def get_dealer_reviews(request,dealer_id):
-# ...
 
-# Create a `get_dealer_details` view to render the dealer details
-# def get_dealer_details(request, dealer_id):
-# ...
+def get_dealer_details(request, dealer_id):
+    dealer = get_request("/fetchDealer/" + str(dealer_id))
+    if not isinstance(dealer, list):
+        return JsonResponse({"status": 502, "message": "Unable to retrieve dealer"}, status=502)
+    if not dealer:
+        return JsonResponse({"status": 404, "dealer": [], "message": "Dealer not found"}, status=404)
+    return JsonResponse({"status": 200, "dealer": dealer})
+
+
+def get_dealer_reviews(request, dealer_id):
+    reviews = get_request("/fetchReviews/dealer/" + str(dealer_id))
+    if not isinstance(reviews, list):
+        return JsonResponse({"status": 502, "message": "Unable to retrieve reviews"}, status=502)
+    for review in reviews:
+        result = analyze_review_sentiments(review.get("review", ""))
+        review["sentiment"] = result.get("sentiment", "unknown") if isinstance(result, dict) else "unknown"
+    return JsonResponse({"status": 200, "reviews": reviews})
+
 
 # Create a `add_review` view to submit a review
 def add_review(request):
