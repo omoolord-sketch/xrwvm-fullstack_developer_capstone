@@ -19,6 +19,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 from .models import CarMake, CarModel
+from .restapis import get_request, analyze_review_sentiments, post_review
 
 
 # Get an instance of a logger
@@ -94,8 +95,25 @@ def registration(request):
 # ...
 
 # Create a `add_review` view to submit a review
-# def add_review(request):
-# ...
+def add_review(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": 403, "message": "Unauthorized"}, status=403)
+    if request.method != "POST":
+        return JsonResponse({"status": 405, "message": "Method not allowed"}, status=405)
+    try:
+        data = json.loads(request.body)
+        required = ("name", "dealership", "review", "purchase", "purchase_date",
+                    "car_make", "car_model", "car_year")
+        if not isinstance(data, dict) or any(key not in data for key in required):
+            return JsonResponse({"status": 400, "message": "Missing review fields"}, status=400)
+    except (ValueError, TypeError):
+        return JsonResponse({"status": 400, "message": "Invalid JSON"}, status=400)
+
+    response = post_review(data)
+    if not isinstance(response, dict) or "id" not in response or response.get("error"):
+        return JsonResponse({"status": 502, "message": "Error in posting review"}, status=502)
+    return JsonResponse({"status": 200, "message": "Review posted successfully"})
+
 
 
 def get_cars(request):
