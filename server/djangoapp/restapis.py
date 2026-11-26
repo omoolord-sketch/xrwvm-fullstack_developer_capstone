@@ -1,5 +1,6 @@
 # Uncomment the imports below before you add the function code
 import requests
+from urllib.parse import quote
 import os
 from dotenv import load_dotenv
 
@@ -23,9 +24,16 @@ def get_request(endpoint, **kwargs):
         return None
 
 
-# def analyze_review_sentiments(text):
-# request_url = sentiment_analyzer_url+"analyze/"+text
-# Add code for retrieving sentiments
+def analyze_review_sentiments(text):
+    request_url = sentiment_analyzer_url.rstrip("/") + "/analyze/" + quote(text, safe="")
+    try:
+        response = requests.get(request_url, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except (requests.RequestException, ValueError) as exc:
+        print("Sentiment analysis request failed: {}".format(exc))
+        return None
+
 
 # def post_review(data_dict):
 # Add code for posting review
