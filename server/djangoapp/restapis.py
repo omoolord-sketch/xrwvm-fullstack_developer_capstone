@@ -35,5 +35,13 @@ def analyze_review_sentiments(text):
         return None
 
 
-# def post_review(data_dict):
-# Add code for posting review
+def post_review(data_dict):
+    request_url = backend_url.rstrip("/") + "/insert_review"
+    try:
+        response = requests.post(request_url, json=data_dict, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except (requests.RequestException, ValueError) as exc:
+        print("Review submission failed: {}".format(exc))
+        return None
+
