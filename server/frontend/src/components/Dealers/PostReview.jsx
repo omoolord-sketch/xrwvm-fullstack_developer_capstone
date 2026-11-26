@@ -8,7 +8,9 @@ import Header from '../Header/Header';
 const PostReview = () => {
   const [dealer, setDealer] = useState({});
   const [review, setReview] = useState("");
-  const [model, setModel] = useState();
+  const [model, setModel] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [year, setYear] = useState("");
   const [date, setDate] = useState("");
   const [carmodels, setCarmodels] = useState([]);
@@ -22,44 +24,63 @@ const PostReview = () => {
   let carmodels_url = root_url+`djangoapp/get_cars`;
 
   const postreview = async ()=>{
+    if (submitting) return;
+    setError("");
+    if (!sessionStorage.getItem("username")) {
+      setError("Please log in to post a review.");
+      return;
+    }
     let name = sessionStorage.getItem("firstname")+" "+sessionStorage.getItem("lastname");
     //If the first and second name are stores as null, use the username
     if(name.includes("null")) {
       name = sessionStorage.getItem("username");
     }
-    if(!model || review === "" || date === "" || year === "" || model === "") {
+    if(!model || review.trim() === "" || date === "" || year === "" || model === "") {
       alert("All details are mandatory")
       return;
     }
 
-    let model_split = model.split(" ");
-    let make_chosen = model_split[0];
-    let model_chosen = model_split[1];
+    if (!Number.isInteger(Number(year)) || Number(year) < 2015 || Number(year) > 2023) {
+      setError("Choose a car year from 2015 to 2023.");
+      return;
+    }
+    let [make_chosen, model_chosen] = JSON.parse(model);
 
     let jsoninput = JSON.stringify({
       "name": name,
       "dealership": id,
-      "review": review,
+      "review": review.trim(),
       "purchase": true,
       "purchase_date": date,
       "car_make": make_chosen,
       "car_model": model_chosen,
-      "car_year": year,
+      "car_year": Number(year),
     });
 
-    console.log(jsoninput);
-    const res = await fetch(review_url, {
-      method: "POST",
-      headers: {
+    const csrfCookie = document.cookie.split("; ").find(cookie => cookie.startsWith("csrftoken="));
+    const csrfToken = csrfCookie ? decodeURIComponent(csrfCookie.substring("csrftoken=".length)) : "";
+    setSubmitting(true);
+    try {
+      const res = await fetch(review_url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
           "Content-Type": "application/json",
-      },
-      body: jsoninput,
-  });
-
-  const json = await res.json();
-  if (json.status === 200) {
-      window.location.href = window.location.origin+"/dealer/"+id;
-  }
+          "X-CSRFToken": csrfToken,
+        },
+        body: jsoninput,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.status === 200) {
+        window.location.href = "/dealer/" + id;
+      } else {
+        setError(json.message || "Review could not be submitted. Please log in again and retry.");
+      }
+    } catch (err) {
+      setError("Unable to reach the review service.");
+    } finally {
+      setSubmitting(false);
+    }
 
   }
   const get_dealer = async ()=>{
@@ -95,26 +116,28 @@ const PostReview = () => {
       <Header/>
       <div  style={{margin:"5%"}}>
       <h1 style={{color:"darkblue"}}>{dealer.full_name}</h1>
+      <label htmlFor="review">Your review</label><br />
       <textarea id='review' cols='50' rows='7' onChange={(e) => setReview(e.target.value)}></textarea>
       <div className='input_field'>
       Purchase Date <input type="date" onChange={(e) => setDate(e.target.value)}/>
       </div>
       <div className='input_field'>
       Car Make 
-      <select name="cars" id="cars" onChange={(e) => setModel(e.target.value)}>
-      <option value="" selected disabled hidden>Choose Car Make and Model</option>
+      <select name="cars" id="cars" value={model} onChange={(e) => setModel(e.target.value)}>
+      <option value="" disabled hidden>Choose Car Make and Model</option>
       {carmodels.map(carmodel => (
-          <option value={carmodel.CarMake+" "+carmodel.CarModel}>{carmodel.CarMake} {carmodel.CarModel}</option>
+          <option key={JSON.stringify([carmodel.CarMake, carmodel.CarModel])} value={JSON.stringify([carmodel.CarMake, carmodel.CarModel])}>{carmodel.CarMake} {carmodel.CarModel}</option>
       ))}
       </select>        
       </div >
 
       <div className='input_field'>
-      Car Year <input type="int" onChange={(e) => setYear(e.target.value)} max={2023} min={2015}/>
+      Car Year <input type="number" onChange={(e) => setYear(e.target.value)} max={2023} min={2015}/>
       </div>
 
       <div>
-      <button className='postreview' onClick={postreview}>Post Review</button>
+      {error && <p role="alert" style={{color:"darkred"}}>{error}</p>}
+      <button className='postreview' disabled={submitting} onClick={postreview}>{submitting ? "Submitting..." : "Post Review"}</button>
       </div>
     </div>
     </div>
