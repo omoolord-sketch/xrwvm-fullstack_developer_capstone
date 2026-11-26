@@ -102,7 +102,8 @@ def get_dealerships(request, state="All"):
     dealers = get_request(endpoint)
     if not isinstance(dealers, list):
         return JsonResponse(
-            {"status": 502, "message": "Unable to retrieve dealerships"}, status=502
+            {"status": 502, "message": "Unable to retrieve dealerships"},
+            status=502,
         )
     return JsonResponse({"status": 200, "dealers": dealers})
 
@@ -115,7 +116,8 @@ def get_dealer_details(request, dealer_id):
         )
     if not dealer:
         return JsonResponse(
-            {"status": 404, "dealer": [], "message": "Dealer not found"}, status=404
+            {"status": 404, "dealer": [], "message": "Dealer not found"},
+            status=404,
         )
     return JsonResponse({"status": 200, "dealer": dealer})
 
@@ -124,7 +126,8 @@ def get_dealer_reviews(request, dealer_id):
     reviews = get_request("/fetchReviews/dealer/" + str(dealer_id))
     if not isinstance(reviews, list):
         return JsonResponse(
-            {"status": 502, "message": "Unable to retrieve reviews"}, status=502
+            {"status": 502, "message": "Unable to retrieve reviews"},
+            status=502,
         )
     for review in reviews:
         result = analyze_review_sentiments(review.get("review", ""))
@@ -147,8 +150,10 @@ def add_review(request):
         )
     try:
         data = json.loads(request.body)
-        required = ("name", "dealership", "review", "purchase", "purchase_date",
-                    "car_make", "car_model", "car_year")
+        required = (
+            "name", "dealership", "review", "purchase", "purchase_date",
+            "car_make", "car_model", "car_year",
+        )
         if not isinstance(data, dict) or any(
             key not in data for key in required
         ):
@@ -161,8 +166,10 @@ def add_review(request):
         )
 
     response = post_review(data)
-    if (not isinstance(response, dict) or "id" not in response
-            or response.get("error")):
+    if (
+        not isinstance(response, dict) or "id" not in response
+        or response.get("error")
+    ):
         return JsonResponse(
             {"status": 502, "message": "Error in posting review"}, status=502
         )
