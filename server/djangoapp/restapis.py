@@ -12,6 +12,7 @@ sentiment_analyzer_url = os.getenv(
     'sentiment_analyzer_url',
     default="http://localhost:5050/")
 
+
 def get_request(endpoint, **kwargs):
     request_url = backend_url.rstrip("/") + "/" + endpoint.lstrip("/")
     print("GET from {}".format(request_url))
@@ -25,7 +26,9 @@ def get_request(endpoint, **kwargs):
 
 
 def analyze_review_sentiments(text):
-    request_url = sentiment_analyzer_url.rstrip("/") + "/analyze/" + quote(text, safe="")
+    request_url = (
+        sentiment_analyzer_url.rstrip("/") + "/analyze/" + quote(text, safe="")
+    )
     try:
         response = requests.get(request_url, timeout=30)
         response.raise_for_status()
@@ -44,4 +47,3 @@ def post_review(data_dict):
     except (requests.RequestException, ValueError) as exc:
         print("Review submission failed: {}".format(exc))
         return None
-
