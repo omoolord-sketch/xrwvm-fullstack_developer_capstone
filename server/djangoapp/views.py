@@ -17,7 +17,8 @@ from django.contrib.auth import login, authenticate
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
-# from .populate import initiate
+from .populate import initiate
+from .models import CarMake, CarModel
 
 
 # Get an instance of a logger
@@ -95,3 +96,14 @@ def registration(request):
 # Create a `add_review` view to submit a review
 # def add_review(request):
 # ...
+
+
+def get_cars(request):
+    if not CarModel.objects.exists():
+        initiate()
+    car_models = CarModel.objects.select_related('car_make').order_by('id')
+    cars = [
+        {"CarModel": car_model.name, "CarMake": car_model.car_make.name}
+        for car_model in car_models
+    ]
+    return JsonResponse({"CarModels": cars})
