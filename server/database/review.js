@@ -1,3 +1,4 @@
+/*jshint esversion: 8, node: true */
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
@@ -38,7 +39,7 @@ const reviews = new Schema({
   car_year: {
     type: Number,
     required: true
-  },
+  }
 });
 
 module.exports = mongoose.model('reviews', reviews);
